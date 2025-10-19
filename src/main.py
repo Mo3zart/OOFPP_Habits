@@ -3,11 +3,15 @@ from __future__ import annotations
 import sys
 from datetime import datetime
 from typing import Optional
+from colorama import Fore, Style, init
 
 from modules.sqlite_handler import SQLiteHandler
 from modules.habit_manager import HabitManager
 
-# exact ASCII banner you provided
+# initialize colorama
+init(autoreset=True)
+
+# exact ASCII banner
 ASCII_BANNER = r"""
 ----------------------------------------------------------
  _   _       _     _ _ _____              _
@@ -47,8 +51,7 @@ General navigation:
     h, help             -   show this help
 """
 
-PROMPT = "HabitTracker > : "
-
+PROMPT = Fore.YELLOW + "HabitTracker > : " + Style.RESET_ALL
 VALID_PERIODICITIES = {"daily", "weekly", "monthly"}
 
 
@@ -60,48 +63,45 @@ def fmt_dt_for_list(dt: Optional[datetime]) -> str:
 
 
 def print_banner_and_welcome() -> None:
-    print(ASCII_BANNER)
+    print(Fore.CYAN + ASCII_BANNER + Style.RESET_ALL)
 
 
 def print_help() -> None:
-    print(USAGE_HELP)
+    print(Fore.CYAN + USAGE_HELP + Style.RESET_ALL)
 
 
 def print_habits_table(manager: HabitManager) -> None:
     habits = manager.list_habits()
     if not habits:
-        print("\nNo habits found.\n")
+        print(Fore.RED + "\nNo habits found.\n" + Style.RESET_ALL)
         return
 
-    # Sort descending by id (newest first) to match sample
     habits_sorted = sorted(habits, key=lambda h: (h.id or 0), reverse=True)
 
-    print()
-    print("ID    Name                 Periodicity     Created At")
-    print("----------------------------------------------------------------------")
+    print(Fore.CYAN + "\nID    Name                 Periodicity     Created At               Last Completion")
+    print("---------------------------------------------------------------------------------------------")
     for h in habits_sorted:
         created = fmt_dt_for_list(h.created_at)
         last = fmt_dt_for_list(max(h.completions) if h.completions else None)
-        # Match column widths from your sample
-        print(f"{h.id:<5} {h.name:<20} {h.periodicity:<15} {created}")
-    print()
+        print(f"{h.id:<5} {h.name:<20} {h.periodicity:<15} {created:<25} {last}")
+    print(Style.RESET_ALL)
 
 
 def cmd_create(manager: HabitManager) -> None:
-    name = input("Enter habit name: ").strip()
+    name = input(Fore.YELLOW + "Enter habit name: " + Style.RESET_ALL).strip()
     if not name:
-        print("Aborted: name cannot be empty.")
+        print(Fore.RED + "Aborted: name cannot be empty." + Style.RESET_ALL)
         return
-    periodicity = input("Enter periodicity (daily/weekly/monthly): ").strip().lower()
+    periodicity = input(Fore.YELLOW + "Enter periodicity (daily/weekly/monthly): " + Style.RESET_ALL).strip().lower()
     if periodicity not in VALID_PERIODICITIES:
-        print(f"Invalid periodicity '{periodicity}'. Must be one of: daily, weekly, monthly.")
+        print(Fore.RED + f"Invalid periodicity '{periodicity}'. Must be one of: daily, weekly, monthly." + Style.RESET_ALL)
         return
     try:
         habit = manager.create_habit(name=name, periodicity=periodicity)
     except Exception as exc:
-        print(f"Error saving habit: {exc}")
+        print(Fore.RED + f"Error saving habit: {exc}" + Style.RESET_ALL)
         return
-    print(f"\n✅ Habit '{habit.name}' ({habit.periodicity}) saved successfully!\n")
+    print(Fore.GREEN + f"\n✅ Habit '{habit.name}' ({habit.periodicity}) saved successfully!\n" + Style.RESET_ALL)
 
 
 def cmd_list(manager: HabitManager) -> None:
@@ -111,150 +111,122 @@ def cmd_list(manager: HabitManager) -> None:
 def cmd_edit(manager: HabitManager) -> None:
     print_habits_table(manager)
     try:
-        raw = input("Enter the ID of the habit you want to edit: ").strip()
+        raw = input(Fore.YELLOW + "Enter the ID of the habit you want to edit: " + Style.RESET_ALL).strip()
         if not raw:
-            print("Edit cancelled.")
+            print(Fore.RED + "Edit cancelled." + Style.RESET_ALL)
             return
         hid = int(raw)
     except ValueError:
-        print("Invalid ID.")
+        print(Fore.RED + "Invalid ID." + Style.RESET_ALL)
         return
 
     habit = manager.get_habit(hid)
     if habit is None:
-        print(f"No habit with ID {hid}.")
+        print(Fore.RED + f"No habit with ID {hid}." + Style.RESET_ALL)
         return
 
-    new_name = input(f"Enter new habit name [{habit.name}]: ").strip()
+    new_name = input(Fore.YELLOW + f"Enter new habit name [{habit.name}]: " + Style.RESET_ALL).strip()
     if new_name == "":
         new_name = habit.name
 
-    new_period = input(f"Enter new periodicity (daily/weekly/monthly) [{habit.periodicity}]: ").strip().lower()
+    new_period = input(Fore.YELLOW + f"Enter new periodicity (daily/weekly/monthly) [{habit.periodicity}]: " + Style.RESET_ALL).strip().lower()
     if new_period == "":
         new_period = habit.periodicity
     if new_period not in VALID_PERIODICITIES:
-        print(f"Invalid periodicity '{new_period}'. Update aborted.")
+        print(Fore.RED + f"Invalid periodicity '{new_period}'. Update aborted." + Style.RESET_ALL)
         return
 
     ok = manager.update_habit(hid, name=new_name, periodicity=new_period)
     if ok:
-        print(f"\n✏️ Habit with ID {hid} updated successfully!\n")
+        print(Fore.GREEN + f"\n✏️ Habit with ID {hid} updated successfully!\n" + Style.RESET_ALL)
     else:
-        print("No changes were made.")
+        print(Fore.RED + "No changes were made." + Style.RESET_ALL)
 
 
 def cmd_delete(manager: HabitManager) -> None:
     print_habits_table(manager)
     try:
-        raw = input("Enter the ID of the habit you want to delete: ").strip()
+        raw = input(Fore.YELLOW + "Enter the ID of the habit you want to delete: " + Style.RESET_ALL).strip()
         if not raw:
-            print("Delete cancelled.")
+            print(Fore.RED + "Delete cancelled." + Style.RESET_ALL)
             return
         hid = int(raw)
     except ValueError:
-        print("Invalid ID.")
+        print(Fore.RED + "Invalid ID." + Style.RESET_ALL)
         return
 
-    confirm = input(f"Are you sure you want to delete habit ID {hid}? [y/N]: ").strip().lower()
+    confirm = input(Fore.YELLOW + f"Are you sure you want to delete habit ID {hid}? [y/N]: " + Style.RESET_ALL).strip().lower()
     if confirm not in {"y", "yes"}:
-        print("Delete cancelled.")
+        print(Fore.CYAN + "Delete cancelled." + Style.RESET_ALL)
         return
 
     ok = manager.delete_habit(hid)
     if ok:
-        print(f"\n🗑️ Habit with ID {hid} deleted successfully.\n")
+        print(Fore.GREEN + f"\n🗑️ Habit with ID {hid} deleted successfully.\n" + Style.RESET_ALL)
     else:
-        print(f"No habit with ID {hid} found.")
+        print(Fore.RED + f"No habit with ID {hid} found." + Style.RESET_ALL)
 
 
 def cmd_complete(manager: HabitManager) -> None:
     print_habits_table(manager)
     try:
-        raw = input("Enter the ID of the habit you want to mark completed: ").strip()
+        raw = input(Fore.YELLOW + "Enter the ID of the habit you want to mark completed: " + Style.RESET_ALL).strip()
         if not raw:
-            print("Complete cancelled.")
+            print(Fore.RED + "Complete cancelled." + Style.RESET_ALL)
             return
         hid = int(raw)
     except ValueError:
-        print("Invalid ID.")
+        print(Fore.RED + "Invalid ID." + Style.RESET_ALL)
         return
 
     ok = manager.complete_habit(hid)
     if ok:
-        print(f"\n✅ Recorded completion for habit #{hid}.\n")
+        print(Fore.GREEN + f"\n✅ Recorded completion for habit #{hid}.\n" + Style.RESET_ALL)
     else:
-        print(f"Habit with id {hid} not found.")
+        print(Fore.RED + f"Habit with id {hid} not found." + Style.RESET_ALL)
 
 
 def main_loop(db_path: str = "src/data/sample_habits.db") -> None:
     storage = SQLiteHandler(db_path)
     manager = HabitManager(storage)
-
-    # Startup banner and welcome (exact text)
     print_banner_and_welcome()
 
     while True:
         try:
             raw = input(PROMPT)
         except (KeyboardInterrupt, EOFError):
-            print("\n👋 Exiting HabitTracker. Stay consistent and keep growing!")
+            print(Fore.CYAN + "\n👋 Exiting HabitTracker. Stay consistent and keep growing!" + Style.RESET_ALL)
             break
 
         cmd = raw.strip()
         if not cmd:
             continue
-
         low = cmd.lower()
 
-        # exit commands
         if low in {"q", "quit", "exit"}:
-            print("👋 Exiting HabitTracker. Stay consistent and keep growing!")
+            print(Fore.CYAN + "👋 Exiting HabitTracker. Stay consistent and keep growing!" + Style.RESET_ALL)
             break
-
-        # help
-        if low in {"help", "h", "?"}:
+        elif low in {"help", "h", "?"}:
             print_help()
-            continue
-
-        # banner
-        if low in {"b", "banner"}:
+        elif low in {"b", "banner"}:
             print_banner_and_welcome()
-            continue
-
-        # list
-        if low in {"l", "list"}:
+        elif low in {"l", "list"}:
             cmd_list(manager)
-            continue
-
-        # create
-        if low in {"c", "create"}:
+        elif low in {"c", "create"}:
             cmd_create(manager)
-            continue
-
-        # edit
-        if low in {"e", "edit"}:
+        elif low in {"e", "edit"}:
             cmd_edit(manager)
-            continue
-
-        # delete
-        if low in {"d", "delete"}:
+        elif low in {"d", "delete"}:
             cmd_delete(manager)
-            continue
-
-        # complete / mark
-        if low in {"m", "mark", "complete"}:
+        elif low in {"m", "mark", "complete"}:
             cmd_complete(manager)
-            continue
-
-        # unknown
-        print(f"Unknown command: {cmd!r}. Type 'help' to see available commands.")
+        else:
+            print(Fore.RED + f"Unknown command: {cmd!r}. Type 'help' to see available commands." + Style.RESET_ALL)
 
 
 if __name__ == "__main__":
-    # Allow passing a custom DB path via CLI arg: `python main.py /path/to/db`
     if len(sys.argv) > 1:
-        db_arg = sys.argv[1]
-        main_loop(db_arg)
+        main_loop(sys.argv[1])
     else:
         main_loop()
 

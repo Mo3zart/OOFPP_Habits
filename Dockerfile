@@ -10,9 +10,13 @@ ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 ENV PYTHONPATH=/app/src
 ENV DB_PATH=/app/src/data/sample_habits.db
+ENV TERM=xterm-256color
 
 # Create and set working directory
 WORKDIR /app
+
+# Install SQLite3 ( for database & cli access)
+RUN apt-get update && apt-get install -y --no-install-recommends sqlite3 tree && rm -rf /var/lib/apt/lists/*
 
 # Copy dependency list first (for caching)
 COPY requirements.txt .
