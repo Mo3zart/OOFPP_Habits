@@ -1,71 +1,53 @@
-from __future__ import annotations
+import click
 from datetime import datetime
-from typing import List, Optional
-
-from .storage_handler import StorageHandler
 from .habit import Habit
-
+from .sqlite_handler import SQLiteHandler
 
 class HabitManager:
-    """
-    Service layer for habit operations.
+    def __init__(self, db_path=None):
+        self.db = SQLiteHandler(db_path)
 
-    This layer contains domain logic and delegates persistence to the injected StorageHandler.
-    """
+    def create_habit(self, name, periodicity):
+        """Create a new habit and save it to the database."""
+        habit = Habit(name, periodicity)
+        self.db.save(habit)
+        return f"\n✅ Habit '{habit.name}' ({habit.periodicity}) saved successfully!"
 
-    def __init__(self, storage: StorageHandler):
-        self.storage = storage
-        # ensure DB schema exists
-        self.storage.ensure_tables()
+    def list_habits(self):
+        habits = self.db.load()
+        if not habits:
+            return click.style("📭 No habits found.", fg='yellow')
+        header = click.style(f"\n{'ID':<5} {'Name':<20} {'Periodicity':<15} {'Created At':<25}",
+                             fg='cyan',
+                             bold=True)
+        separator = click.style("-" * 70, fg='cyan')
+        rows = []
+        for h in habits:
+            try:
+                created = datetime.fromisoformat(h[3]).strftime("%b %d, %Y — %H:%M")
+            except Exception:
+                created = h[3]
+            row = f"{h[0]:<5} {h[1]:<20} {h[2]:<15} {created:<25}"
+            rows.append(click.style(row, fg='magenta'))
+        return f"{header}\n{separator}\n" + "\n".join(rows)
 
-    # -------------------------
-    # CRUD operations
-    # -------------------------
-    def create_habit(self, name: str, periodicity: str) -> Habit:
-        """
-        Create and persist a new habit. Returns the Habit (with id set).
-        """
-        habit = Habit(id=None, name=name, periodicity=periodicity, created_at=datetime.utcnow())
-        hid = self.storage.save_habit(habit)
-        return self.get_habit(hid)
+    def edit_habit(self, habit_id, new_name=None, new_periodicity=None):
+        """Edit a habit's name or periodicity."""
+        success = self.db.update(habit_id, new_name, new_periodicity)
+        if success:
+            return click.style(f"\n✏️ Habit with ID {habit_id} updated successfully!",
+                               fg='green')
+        else:
+            return click.style(f"\n⚠️ No habit found with ID {habit_id}, or no changes made.",
+                               fg='red')
 
-    def list_habits(self) -> List[Habit]:
-        """Return all habits (with completions)."""
-        return self.storage.load_habits()
 
-    def get_habit(self, habit_id: int) -> Optional[Habit]:
-        """Return habit by id or None."""
-        return self.storage.get_habit_by_id(habit_id)
-
-    def update_habit(self, habit_id: int, *, name: Optional[str] = None, periodicity: Optional[str] = None) -> bool:
-        """Update habit fields. Return True if updated."""
-        return self.storage.update_habit(habit_id, name=name, periodicity=periodicity)
-
-    def delete_habit(self, habit_id: int) -> bool:
-        """Delete habit and its completions."""
-        return self.storage.delete_habit(habit_id)
-
-    # -------------------------
-    # Completion operations
-    # -------------------------
-    def complete_habit(self, habit_id: int, when: Optional[datetime] = None) -> bool:
-        """
-        Mark a habit as completed at `when` (UTC). If when is None, uses datetime.utcnow().
-        Returns True on success, False if habit not found.
-        """
-        habit = self.get_habit(habit_id)
-        if habit is None:
-            return False
-        ts = when or datetime.utcnow()
-        ok = self.storage.add_completion(habit_id, ts)
-        return bool(ok)
-
-    # -------------------------
-    # Convenience helpers
-    # -------------------------
-    def latest_completion(self, habit_id: int) -> Optional[datetime]:
-        habit = self.get_habit(habit_id)
-        if habit and habit.completions:
-            return max(habit.completions)
-        return None
-
+    def delete_habit(self, habit_id):
+        """Delete the habit by its ID."""
+        success = self.db.delete(habit_id)
+        if success:
+            return click.style(f"\n🗑️ Habit with ID {habit_id} deleted successfully.",
+                               fg='green')
+        else:
+            return click.style(f"\n⚠️ No habit found with ID {habit_id}.",
+                               fg='red')

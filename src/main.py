@@ -1,14 +1,8 @@
-from __future__ import annotations
-import sys
-from typing import Optional
-
 import click
-from modules.sqlite_handler import SQLiteHandler
-from modules.habit_manager import HabitManager
+import modules.habit_manager as habit_manager
+import modules.sqlite_handler as sqlite_handler
 
-DEFAULT_DB = "src/data/sample_habits.db"
-
-ASCII_BANNER = r"""
+ASCII_ART = r"""
 ----------------------------------------------------------
  _   _       _     _ _ _____              _             
 | | | |     | |   (_) |_   _|            | |            
@@ -30,144 +24,106 @@ Here's what you can do:
 You can see all available commands with the 'help' command.
 """
 
-# ---------------------------------------------------------------------
-# Click CLI definition (for non-interactive use or internal dispatch)
-# ---------------------------------------------------------------------
-@click.group()
-@click.option("--db", "-d", default=DEFAULT_DB, help="Path to SQLite database file.")
-@click.pass_context
-def cli(ctx: click.Context, db: str) -> None:
-    """Habit Tracker CLI."""
-    storage = SQLiteHandler(db)
-    manager = HabitManager(storage)
-    ctx.obj = {"storage": storage, "manager": manager}
+HELP_MENU = r"""
+Here are all available commands you can run:
 
+General navigation:
+    q, quit, exit       -   exit the application
+    l, list             -   list defined habits
+    c, create           -   creat a new habit
+    b, banner           -   show the banner of the application
+    d, delete           -   delete a habit by id
+    e, edit             -   edit the values of a habit
+"""
 
-@cli.command("add")
-@click.argument("name")
-@click.argument("periodicity")
-@click.pass_context
-def add_habit(ctx: click.Context, name: str, periodicity: str) -> None:
-    """Add a new habit."""
-    manager: HabitManager = ctx.obj["manager"]
-    habit = manager.create_habit(name=name, periodicity=periodicity)
-    click.echo(f"Created habit #{habit.id}: {habit.name} ({habit.periodicity})")
+def show_banner():
+    click.clear()
+    click.echo(click.style(ASCII_ART, fg='cyan'))
+    click.echo(click.style("\nWhat would you like to do? (type 'help' for options)", fg='cyan'))
 
-
-@cli.command("list")
-@click.option("--periodicity", "-p", default=None, help="Filter by periodicity.")
-@click.pass_context
-def list_habits(ctx: click.Context, periodicity: Optional[str]) -> None:
-    """List all habits."""
-    manager: HabitManager = ctx.obj["manager"]
-    habits = manager.list_habits()
-    if periodicity:
-        habits = [h for h in habits if h.periodicity == periodicity]
-    if not habits:
-        click.echo("No habits found.")
-        return
-    click.echo("\nID | Name                      | Periodicity | Created At               | Last Completion")
-    click.echo("-" * 85)
-    for h in habits:
-        latest = max(h.completions).isoformat() if h.completions else "—"
-        click.echo(f"{h.id:>2} | {h.name:<25} | {h.periodicity:<11} | {h.created_at:%Y-%m-%d %H:%M:%S} | {latest}")
-
-
-@cli.command("complete")
-@click.argument("habit_id", type=int)
-@click.pass_context
-def complete(ctx: click.Context, habit_id: int) -> None:
-    """Mark a habit as completed now."""
-    manager: HabitManager = ctx.obj["manager"]
-    ok = manager.complete_habit(habit_id)
-    click.echo("Completion recorded." if ok else f"Habit #{habit_id} not found.")
-
-
-@cli.command("show")
-@click.argument("habit_id", type=int)
-@click.pass_context
-def show(ctx: click.Context, habit_id: int) -> None:
-    """Show one habit's details and completions."""
-    manager: HabitManager = ctx.obj["manager"]
-    habit = manager.get_habit(habit_id)
-    if habit is None:
-        click.echo(f"Habit #{habit_id} not found.")
-        return
-    click.echo(f"\n#{habit.id} {habit.name} ({habit.periodicity})  Created: {habit.created_at:%Y-%m-%d %H:%M}")
-    if not habit.completions:
-        click.echo("No completions yet.")
-        return
-    click.echo("Completions:")
-    for c in habit.completions:
-        click.echo(f" - {c:%Y-%m-%d %H:%M}")
-
-
-@cli.command("edit")
-@click.argument("habit_id", type=int)
-@click.option("--name", default=None, help="New name.")
-@click.option("--periodicity", default=None, help="New periodicity.")
-@click.pass_context
-def edit(ctx: click.Context, habit_id: int, name: Optional[str], periodicity: Optional[str]) -> None:
-    """Edit an existing habit."""
-    manager: HabitManager = ctx.obj["manager"]
-    ok = manager.update_habit(habit_id, name=name, periodicity=periodicity)
-    click.echo("Habit updated." if ok else "No habit updated.")
-
-
-@cli.command("delete")
-@click.argument("habit_id", type=int)
-@click.pass_context
-def delete(ctx: click.Context, habit_id: int) -> None:
-    """Delete a habit."""
-    manager: HabitManager = ctx.obj["manager"]
-    ok = manager.delete_habit(habit_id)
-    click.echo("Habit deleted." if ok else f"Habit #{habit_id} not found.")
-
-
-# ---------------------------------------------------------------------
-# Interactive shell implementation
-# ---------------------------------------------------------------------
-def interactive_shell(db_path: str = DEFAULT_DB) -> None:
-    """Run an interactive CLI loop."""
-    print(ASCII_BANNER)
-    storage = SQLiteHandler(db_path)
-    manager = HabitManager(storage)
-    ctx = click.Context(cli, obj={"storage": storage, "manager": manager})
-
+def main_loop():
+    manager = habit_manager.HabitManager()
     while True:
-        try:
-            raw = input("habit-tracker > ").strip()
-        except (EOFError, KeyboardInterrupt):
-            print("\nExiting Habit Tracker. Goodbye!")
+        user_input = click.prompt(
+            click.style("\nHabitTracker > ", fg='cyan')
+        )
+        if user_input in ['exit', 'quit', 'q']:
+            click.secho("👋 Exiting HabitTracker. Stay consistent and keep growing!", fg='yellow')
             break
+        if user_input == 'help':
+            click.secho(HELP_MENU, fg='green')
+        if user_input in ['l', 'list']:
+            habits = manager.list_habits()
+            click.secho(habits, fg='magenta')
+        if user_input in ['c', 'create']:
+            name = click.prompt(click.style("Enter habit name", fg='yellow'))
+            periodicity = click.prompt(click.style("Enter periodicity (daily/weekly/monthly)", fg='yellow'))
+            result = manager.create_habit(name, periodicity)
+            click.secho(result, fg='green')
+        if user_input in ['b', 'banner']:
+            show_banner()
+        if user_input in ['d', 'delete']:
+            click.secho(manager.list_habits(), fg='magenta')
+            habit_id = click.prompt(click.style("Enter the ID of the habit you want to delete", fg='yellow'))
+            try:
+                habit_id = int(habit_id)
+                confirm = click.confirm(
+                    click.style(f"Are you sure you want to delete habit ID {habit_id}?", fg='yellow'),
+                    default=False
+                )
 
-        if not raw:
-            continue
-        if raw.lower() in {"exit", "quit"}:
-            print("Exiting Habit Tracker. Goodbye!")
-            break
-        if raw.lower() in {"help", "?"}:
-            cli.main(args=["--help"], prog_name="habit-tracker", standalone_mode=False)
-            continue
+                if confirm:
+                    result = manager.delete_habit(habit_id)
+                    click.secho(result)
+                else:
+                    click.secho("❎ Deletion cancelled.", fg='cyan')
 
-        # Split command string and execute through Click
-        argv = raw.split()
-        try:
-            cli.main(args=argv, prog_name="habit-tracker", standalone_mode=False, parent=ctx)
-        except SystemExit:
-            # Click may raise SystemExit on aborts; ignore to stay in loop
-            continue
-        except Exception as e:
-            click.echo(f"[Error] {e}", err=True)
+            except ValueError:
+                click.secho("\n❌ Please enter a valid numeric ID.", fg='red')
+        
+        if user_input in ['e', 'edit']:
+            click.secho(manager.list_habits(), fg='magenta')
+            habit_id = click.prompt(click.style("\nEnter the ID of the habit you want to edit", fg='yellow'))
 
+            try:
+                habit_id = int(habit_id)
+                habit = manager.db.get_by_id(habit_id)
 
-# ---------------------------------------------------------------------
-# Entrypoint
-# ---------------------------------------------------------------------
-if __name__ == "__main__":
-    # If user passed arguments, run as normal CLI once; otherwise, open shell
-    if len(sys.argv) > 1:
-        cli()
-    else:
-        interactive_shell()
+                if not habit:
+                    click.secho(f"\n⚠️ No habit found with ID {habit_id}.", fg='red')
+                    continue
 
+                current_name = habit[1]
+                current_periodicity = habit[2]
+
+                # Ask for new values with current ones as defaults
+                new_name = click.prompt(
+                    click.style(f"\nEnter new habit name [{current_name}]", fg='yellow'),
+                    default=current_name,
+                    show_default=False
+                )
+
+                new_periodicity = click.prompt(
+                    click.style(f"Enter new periodicity (daily/weekly/monthly) [{current_periodicity}]", fg='yellow'),
+                    default=current_periodicity,
+                    show_default=False
+                )
+
+                # Only update if something actually changed
+                if new_name == current_name and new_periodicity == current_periodicity:
+                    click.secho("\n⚠️ No changes made.", fg='cyan')
+                else:
+                    result = manager.edit_habit(habit_id, new_name, new_periodicity)
+                    click.secho(result)
+
+            except ValueError:
+                click.secho("\n❌ Please enter a valid numeric ID.", fg='red')
+         
+
+def run():
+    """Main entry point."""
+    show_banner()
+    main_loop()
+
+if __name__ == '__main__':
+    run()
