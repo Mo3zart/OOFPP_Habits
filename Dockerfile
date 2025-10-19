@@ -8,6 +8,8 @@ FROM python:3.13-slim
 # Set environment variables
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
+ENV PYTHONPATH=/app/src
+ENV DB_PATH=/app/src/data/sample_habits.db
 
 # Create and set working directory
 WORKDIR /app
@@ -16,14 +18,17 @@ WORKDIR /app
 COPY requirements.txt .
 
 # Install dependencies
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt 
 
 # Copy the project files into the container
 COPY . .
 
-# Run tests automatically (optional — can be removed)
+RUN mkdir -p /app/src/data && chmod 777 /app/src/data
+
+# Run tests automatically 
+
 RUN pytest -v || true
 
 # Define the default command for the CLI app
-ENTRYPOINT ["python", "-m", "src.cli"]
+ENTRYPOINT ["python", "-m", "src.main"]
 
