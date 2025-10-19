@@ -9,15 +9,25 @@ from modules.habit_manager import HabitManager
 DEFAULT_DB = "src/data/sample_habits.db"
 
 ASCII_BANNER = r"""
- _   _       _ _     _            _             _             
-| | | | __ _| (_)___| |_ __ _ ___| |_ __ _ _ __| |_ ___  _ __ 
-| |_| |/ _` | | / __| __/ _` / __| __/ _` | '__| __/ _ \| '__|
-|  _  | (_| | | \__ \ || (_| \__ \ || (_| | |  | || (_) | |   
-|_| |_|\__,_|_|_|___/\__\__,_|___/\__\__,_|_|   \__\___/|_|   
+----------------------------------------------------------
+ _   _       _     _ _ _____              _             
+| | | |     | |   (_) |_   _|            | |            
+| |_| | __ _| |__  _| |_| |_ __ __ _  ___| | _____ _ __ 
+|  _  |/ _` | '_ \| | __| | '__/ _` |/ __| |/ / _ \ '__|
+| | | | (_| | |_) | | |_| | | | (_| | (__|   <  __/ |   
+\_| |_/\__,_|_.__/|_|\__\_/_|  \__,_|\___|_|\_\___|_|   
+                                                        
+----------------------------------------------------------
 
-Welcome to the Habit Tracker CLI Framework
-Type 'help' to see available commands or 'exit' to quit.
-----------------------------------------------------------------
+Welcome to HabitTracker CLI!
+
+Here's what you can do:
+    🟢 Create a new habit
+    🟡 Modify or delete an existing habit
+    🔵 Mark a habit as completed
+    🟣 Analyze your progress and streaks
+
+You can see all available commands with the 'help' command.
 """
 
 # ---------------------------------------------------------------------
