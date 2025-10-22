@@ -30,7 +30,7 @@ def calculate_streaks(habit: Habit) -> int:
     period = _period_delta(habit.periodicity)
     now = datetime.utcnow()
 
-    # 1️⃣ Check if the last completion is still "recent enough" for this period.
+    # Check if the last completion is still "recent enough" for this period.
     #    If too long ago, the streak is considered broken.
     if (now - completions[-1]) > (period + timedelta(hours=12)):
         return 0
