@@ -7,11 +7,12 @@ from colorama import Fore, Style, init
 
 from modules.sqlite_handler import SQLiteHandler
 from modules.habit_manager import HabitManager
+from modules import analytics, admin_tools
+
 
 # initialize colorama
 init(autoreset=True)
 
-# exact ASCII banner
 ASCII_BANNER = r"""
 ----------------------------------------------------------
  _   _       _     _ _ _____              _
@@ -41,14 +42,20 @@ USAGE_HELP = """
 Here are all available commands you can run:
 
 General navigation:
-    q, quit, exit       -   exit the application
-    l, list             -   list defined habits
-    c, create           -   create a new habit
-    b, banner           -   show the banner of the application
-    d, delete           -   delete a habit by id
-    e, edit             -   edit the values of a habit
-    m, mark, complete   -   mark a habit as completed now
-    h, help             -   show this help
+    q, quit, exit           -   exit the application
+    l, list                 -   list defined habits
+    c, create               -   create a new habit
+    b, banner               -   show the banner of the application
+    d, delete               -   delete a habit by id
+    e, edit                 -   edit the values of a habit
+    m, mark, complete       -   mark a habit as completed now
+    h, help                 -   show this help
+    a, analyze, analytics   -   analyze your habit performance
+    streak <habit name>     -   show the longest streak for a specific habit
+
+    admin                   - open admin panel (create dummy data, test streaks)
+
+
 """
 
 PROMPT = Fore.YELLOW + "HabitTracker > : " + Style.RESET_ALL
@@ -220,6 +227,113 @@ def main_loop(db_path: str = "src/data/sample_habits.db") -> None:
             cmd_delete(manager)
         elif low in {"m", "mark", "complete"}:
             cmd_complete(manager)
+        elif low in {"a", "analyze", "analytics"}:
+            print(Fore.CYAN + "\n=== Habit Analytics ===\n" + Style.RESET_ALL)
+            habits = manager.list_habits()
+            if not habits:
+                print(Fore.RED + "No habits found for analysis." + Style.RESET_ALL)
+                continue
+            longest = analytics.longest_streak_overall(habits)
+            print(Fore.GREEN + f"🏆 Longest streak overall: {longest[0]} — {longest[1]} completions" + Style.RESET_ALL)
+            print(Fore.YELLOW + "\n🔹 Daily Habits:" + Style.RESET_ALL)
+            daily = analytics.list_by_periodicity(habits, "daily")
+            if daily:
+                for h in daily:
+                    print(f"  {Fore.WHITE}{h.name}{Style.RESET_ALL}")
+            else:
+                print(Fore.RED + "  None" + Style.RESET_ALL)
+            print(Fore.BLUE + "\n🔹 Weekly Habits:" + Style.RESET_ALL)
+            weekly = analytics.list_by_periodicity(habits, "weekly")
+            if weekly:
+                for h in weekly:
+                    print(f"  {Fore.WHITE}{h.name}{Style.RESET_ALL}")
+            else:
+                print(Fore.RED + "  None" + Style.RESET_ALL)
+            print(Fore.MAGENTA + "\n🔹 Monthly Habits:" + Style.RESET_ALL)
+            monthly = analytics.list_by_periodicity(habits, "monthly")
+            if monthly:
+                for h in monthly:
+                    print(f"  {Fore.WHITE}{h.name}{Style.RESET_ALL}")
+            else:
+                print(Fore.RED + "  None" + Style.RESET_ALL)
+            print(Fore.CYAN + "\n📈 Individual Streaks:" + Style.RESET_ALL)
+            for h in habits:
+                streak = analytics.calculate_streaks(h)
+                color = Fore.GREEN if streak >= 10 else Fore.YELLOW if streak >= 5 else Fore.RED
+                print(f"  {h.name:<15} — {color}{streak}{Style.RESET_ALL}")
+        elif low in {"admin"}:
+            print(Fore.CYAN + "\n=== Admin Panel (Debug Mode) ===" + Style.RESET_ALL)
+            print("Type 'help' to see available options, or 'back' to return to main menu.\n")
+
+            def show_admin_help():
+                print(Fore.CYAN + "\nAdmin Commands:\n" + Style.RESET_ALL)
+                print(" 1. seed             - create dummy habits with different periodicities")
+                print(" 2. fake             - add fake completions to all habits")
+                print(" 3. summary          - show summary of all habits")
+                print(" 4. analyze          - run analytics overview")
+                print(" 5. back             - return to main menu")
+                print(" 6. fake_perfect     - add fake completions with perfect streaks")
+                print(" help                - show this help window again")
+                print(" l                   - list all habits\n")
+
+            show_admin_help()
+
+            while True:
+                choice = input(Fore.YELLOW + "Admin > " + Style.RESET_ALL).strip().lower()
+
+                if choice in {"1", "seed"}:
+                    admin_tools.seed_dummy_habits(manager)
+                    print(Fore.GREEN + "✅ Dummy habits created." + Style.RESET_ALL)
+
+                elif choice in {"2", "fake"}:
+                    admin_tools.add_fake_completions(manager)
+                    print(Fore.GREEN + "✅ Fake completions added." + Style.RESET_ALL)
+
+                elif choice in {"3", "summary"}:
+                    admin_tools.show_admin_summary(manager)
+
+                elif choice in {"4", "analyze"}:
+                    habits = manager.list_habits()
+                    longest = analytics.longest_streak_overall(habits)
+                    if longest:
+                        print(Fore.CYAN + f"🏆 Longest streak overall: {longest[0]} — {longest[1]}" + Style.RESET_ALL)
+                    else:
+                        print(Fore.RED + "No habits found for analysis." + Style.RESET_ALL)
+
+                elif choice in {"5", "back", "exit", "b", "q", "quit"}:
+                    print(Fore.CYAN + "Returning to main menu..." + Style.RESET_ALL)
+                    break
+
+                elif choice in {"6", "fake_perfect"}:
+                    admin_tools.add_perfect_streaks(manager)
+                    print(Fore.GREEN + "✅ Perfect streaks added for all habits." + Style.RESET_ALL)
+
+
+                elif choice in {"help", "h"}:
+                    show_admin_help()
+
+                elif choice in {"l", "list"}:
+                    habits = manager.list_habits()
+                    print(Fore.CYAN + "\n📋 Habits currently in database:" + Style.RESET_ALL)
+                    for h in habits:
+                        last = h.completions[-1].strftime("%b %d, %Y — %H:%M") if h.completions else "—"
+                        print(f"  - {h.name:<18} [{h.periodicity:<7}]  Last: {last}")
+                    print()
+
+                else:
+                    print(Fore.RED + "❌ Unknown command. Type 'help' for available options." + Style.RESET_ALL)
+        elif low.startswith("streak "):
+            _, *rest = low.split()
+            name = " ".join(rest)
+            if not name:
+                print(Fore.RED + "Usage: streak <habit name>" + Style.RESET_ALL)
+                continue
+            habits = manager.list_habits()
+            streak = analytics.longest_streak_for_habit_name(habits, name)
+            if streak is None:
+                print(Fore.RED + f"Habit '{name}' not found." + Style.RESET_ALL)
+            else:
+                print(Fore.GREEN + f"🔥 Longest streak for '{name}': {streak}" + Style.RESET_ALL)
         else:
             print(Fore.RED + f"Unknown command: {cmd!r}. Type 'help' to see available commands." + Style.RESET_ALL)
 
