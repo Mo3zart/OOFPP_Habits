@@ -136,6 +136,19 @@ class SQLiteHandler(StorageHandler):
         # convert ISO strings to datetimes
         return [datetime.fromisoformat(r[0]) for r in rows]
 
+    def get_all_completions(self) -> list[tuple[int, str, str]]:
+        """Return all completions joined with their habit names."""
+        cur = self.conn.cursor()
+        cur.execute("""
+            SELECT c.habit_id, h.name, c.completed_at
+            FROM completions AS c
+            JOIN habits AS h ON c.habit_id = h.id
+            ORDER BY c.completed_at DESC
+        """)
+        rows = cur.fetchall()
+        cur.close()
+        return rows
+
     # -------------------------
     # Close/cleanup
     # -------------------------
