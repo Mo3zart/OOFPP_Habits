@@ -1,13 +1,10 @@
 # src/modules/admin_tools.py
 from __future__ import annotations
-from datetime import datetime, timedelta
-from random import random
-from typing import List
-from .habit import Habit
+from datetime import datetime 
 from .habit_manager import HabitManager
 from . import analytics
 
-from colorama import Fore, Style, init
+from colorama import Fore, Style
 
 
 def show_habit_details(manager: HabitManager, habit_id: int) -> None:
