@@ -1,7 +1,7 @@
 from __future__ import annotations
 import sqlite3
 from datetime import datetime
-from typing import List, Optional, Tuple
+from typing import List, Optional
 from .storage_handler import StorageHandler
 from .habit import Habit
 
