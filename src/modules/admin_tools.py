@@ -5,80 +5,105 @@ from random import random
 from typing import List
 from .habit import Habit
 from .habit_manager import HabitManager
-from . import analytics
-
-from colorama import Fore, Style, init
 
 
-def show_habit_details(manager: HabitManager, habit_id: int) -> None:
+def seed_dummy_habits(manager: HabitManager) -> List[Habit]:
     """
-    Show detailed information for a specific habit.
-    Includes creation date, periodicity, total completions, longest streak, and last completion.
+    Create a list of dummy habits for testing and analytics demonstration.
+    Only creates habits that do not already exist (by name).
     """
-    habit = manager.get_habit(habit_id)
-    if not habit:
-        print(Fore.RED + f"No habit found with ID {habit_id}." + Style.RESET_ALL)
-        return
+    dummy_data = [
+        ("Drink Water", "daily"),
+        ("Workout", "daily"),
+        ("Weekly Report", "weekly"),
+        ("House Cleaning", "weekly"),
+        ("Budget Review", "monthly"),
+    ]
 
-    total_completions = len(habit.completions)
-    last_completion = max(habit.completions) if habit.completions else None
-    last_str = last_completion.strftime("%b %d, %Y — %H:%M") if last_completion else "—"
-    streak = manager.get_streak(habit.name)
+    existing = {h.name.lower() for h in manager.list_habits()}
+    habits = []
 
-    print(Fore.CYAN + f"""
-Habit #{habit.id} — "{habit.name}"
-  Periodicity: {habit.periodicity}
-  Created at: {habit.created_at.strftime("%b %d, %Y — %H:%M")}
-  Total completions: {total_completions}
-  Longest streak: {streak}
-  Last completed: {last_str}
-""" + Style.RESET_ALL)
+    for name, periodicity in dummy_data:
+        if name.lower() not in existing:
+            habit = manager.create_habit(name, periodicity)
+            habits.append(habit)
 
-
-def show_habit_details(manager, habit_id: int) -> None:
-    """Display detailed information for a single habit."""
-    habit = manager.get_habit(habit_id)
-    if not habit:
-        print(Fore.RED + f"❌ No habit found with ID {habit_id}." + Style.RESET_ALL)
-        return
-
-    streak = analytics.calculate_streaks(habit)
-
-    print(Fore.CYAN + f"\n📘 Habit Details (ID: {habit.id})" + Style.RESET_ALL)
-    print(f"Name: {habit.name}")
-    print(f"Periodicity: {habit.periodicity}")
-    print(f"Created At: {habit.created_at.strftime('%b %d, %Y — %H:%M')}")
-    print(f"Total Completions: {len(habit.completions)}")
-    print(f"🔥 Current Streak: {streak}")
-
-    if habit.completions:
-        print(Fore.CYAN + "\nRecent Completions:" + Style.RESET_ALL)
-        for c in reversed(habit.completions[-5:]):
-            print(f"  • {c.strftime('%b %d, %Y — %H:%M')}\n")
-    else:
-        print(Fore.RED + "\nNo completions recorded yet.\n" + Style.RESET_ALL)
+    return habits
 
 
-def show_all_completions(manager: HabitManager) -> None:
+def add_fake_completions(manager: HabitManager, span_days: int = 90) -> None:
     """
-    Display all recorded completions (habit_id, name, timestamp).
+    Populate fake completion data for all habits, simulating realistic patterns.
+    - Daily habits: mostly complete, some missed days
+    - Weekly habits: sometimes skip a week
+    - Monthly habits: occasional misses
     """
-    completions = manager.storage.get_all_completions()
-    if not completions:
-        print(Fore.RED + "No completions found." + Style.RESET_ALL)
-        return
 
-    print(Fore.CYAN + "\nAll Recorded Completions:" + Style.RESET_ALL)
-    print(Fore.BLUE + "Habit ID    Habit Name           Timestamp" + Style.RESET_ALL)
-    print(Fore.BLUE + "---------------------------------------------" + Style.RESET_ALL)
+    habits = manager.list_habits()
+    now = datetime.utcnow()
 
-    for habit_id, habit_name, ts in completions:
-        try:
-            dt = datetime.fromisoformat(ts)
-            ts_fmt = dt.strftime("%b %d, %Y — %H:%M")
-        except Exception:
-            ts_fmt = ts
-        print(f"{habit_id:<10} {habit_name:<20} {ts_fmt}")
+    for h in habits:
+        periodicity = h.periodicity.lower()
 
-    print()
+        if periodicity == "daily":
+            delta = timedelta(days=1)
+            num_iterations = span_days
+            miss_chance = 0.2  # 20% chance to skip a day
+
+        elif periodicity == "weekly":
+            delta = timedelta(weeks=1)
+            num_iterations = span_days // 7
+            miss_chance = 0.25  # 25% chance to skip a week
+
+        elif periodicity == "monthly":
+            delta = timedelta(days=30)
+            num_iterations = span_days // 30
+            miss_chance = 0.33  # 33% chance to skip a month
+
+        else:
+            continue
+
+        for i in range(num_iterations):
+            ts = now - i * delta
+            # Randomly skip some completions to simulate imperfect streaks
+            if random() > miss_chance:
+                manager.complete_habit(h.id, when=ts)
+
+
+def add_perfect_streaks(manager: HabitManager, span_days: int = 60) -> None:
+    """
+    Add perfect streak completions for all habits (no misses).
+    Useful for testing ideal analytics behavior.
+    """
+
+    habits = manager.list_habits()
+    now = datetime.utcnow()
+
+    for h in habits:
+        periodicity = h.periodicity.lower()
+        if periodicity == "daily":
+            delta = timedelta(days=1)
+            num_iterations = span_days
+        elif periodicity == "weekly":
+            delta = timedelta(weeks=1)
+            num_iterations = span_days // 7
+        elif periodicity == "monthly":
+            delta = timedelta(days=30)
+            num_iterations = span_days // 30
+        else:
+            continue
+
+        for i in range(num_iterations):
+            ts = now - i * delta
+            manager.complete_habit(h.id, when=ts)
+
+
+def show_admin_summary(manager: HabitManager) -> None:
+    """
+    Print debug summary of all habits and their completion counts.
+    """
+    habits = manager.list_habits()
+    print(f"\n📋 {len(habits)} habits in DB:")
+    for h in habits:
+        print(f"  - {h.name:<20} [{h.periodicity}] ({len(h.completions)} completions)")
 
