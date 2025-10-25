@@ -261,67 +261,43 @@ def main_loop(db_path: str = "src/data/sample_habits.db") -> None:
                 streak = analytics.calculate_streaks(h)
                 color = Fore.GREEN if streak >= 10 else Fore.YELLOW if streak >= 5 else Fore.RED
                 print(f"  {h.name:<15} — {color}{streak}{Style.RESET_ALL}")
+
         elif low in {"admin"}:
-            print(Fore.CYAN + "\n=== Admin Panel (Debug Mode) ===" + Style.RESET_ALL)
+            print(Fore.CYAN + "\n=== HabitTracker Admin Console ===" + Style.RESET_ALL)
             print("Type 'help' to see available options, or 'back' to return to main menu.\n")
 
             def show_admin_help():
                 print(Fore.CYAN + "\nAdmin Commands:\n" + Style.RESET_ALL)
-                print(" 1. seed             - create dummy habits with different periodicities")
-                print(" 2. fake             - add fake completions to all habits")
-                print(" 3. summary          - show summary of all habits")
-                print(" 4. analyze          - run analytics overview")
-                print(" 5. back             - return to main menu")
-                print(" 6. fake_perfect     - add fake completions with perfect streaks")
-                print(" help                - show this help window again")
-                print(" l                   - list all habits\n")
+                print("  show <habit_id>     - show detailed info for a specific habit")
+                print("  completions         - list all recorded completions")
+                print("  back, exit, q       - return to main menu\n")
 
             show_admin_help()
 
             while True:
                 choice = input(Fore.YELLOW + "Admin > " + Style.RESET_ALL).strip().lower()
 
-                if choice in {"1", "seed"}:
-                    admin_tools.seed_dummy_habits(manager)
-                    print(Fore.GREEN + "✅ Dummy habits created." + Style.RESET_ALL)
-
-                elif choice in {"2", "fake"}:
-                    admin_tools.add_fake_completions(manager)
-                    print(Fore.GREEN + "✅ Fake completions added." + Style.RESET_ALL)
-
-                elif choice in {"3", "summary"}:
-                    admin_tools.show_admin_summary(manager)
-
-                elif choice in {"4", "analyze"}:
-                    habits = manager.list_habits()
-                    longest = analytics.longest_streak_overall(habits)
-                    if longest:
-                        print(Fore.CYAN + f"🏆 Longest streak overall: {longest[0]} — {longest[1]}" + Style.RESET_ALL)
-                    else:
-                        print(Fore.RED + "No habits found for analysis." + Style.RESET_ALL)
-
-                elif choice in {"5", "back", "exit", "b", "q", "quit"}:
+                if choice in {"back", "exit", "b", "q", "quit"}:
                     print(Fore.CYAN + "Returning to main menu..." + Style.RESET_ALL)
                     break
-
-                elif choice in {"6", "fake_perfect"}:
-                    admin_tools.add_perfect_streaks(manager)
-                    print(Fore.GREEN + "✅ Perfect streaks added for all habits." + Style.RESET_ALL)
-
 
                 elif choice in {"help", "h"}:
                     show_admin_help()
 
-                elif choice in {"l", "list"}:
-                    habits = manager.list_habits()
-                    print(Fore.CYAN + "\n📋 Habits currently in database:" + Style.RESET_ALL)
-                    for h in habits:
-                        last = h.completions[-1].strftime("%b %d, %Y — %H:%M") if h.completions else "—"
-                        print(f"  - {h.name:<18} [{h.periodicity:<7}]  Last: {last}")
-                    print()
+                elif choice.startswith("show "):
+                    parts = choice.split()
+                    if len(parts) != 2 or not parts[1].isdigit():
+                        print(Fore.RED + "Usage: show <habit_id>" + Style.RESET_ALL)
+                        continue
+                    habit_id = int(parts[1])
+                    admin_tools.show_habit_details(manager, habit_id)
+
+                elif choice in {"completions", "list completions"}:
+                    admin_tools.show_all_completions(manager)
 
                 else:
-                    print(Fore.RED + "❌ Unknown command. Type 'help' for available options." + Style.RESET_ALL)
+                    print(Fore.RED + f"❌ Unknown command: '{choice}'. Type 'help' for options." + Style.RESET_ALL)
+
         elif low.startswith("streak "):
             _, *rest = low.split()
             name = " ".join(rest)
