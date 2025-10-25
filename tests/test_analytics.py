@@ -1,5 +1,5 @@
 """
-Unit tests for analytics.py (Functional Programming module).
+Unit tests for analytics.py.
 
 Covers:
 - _period_delta() correctness
