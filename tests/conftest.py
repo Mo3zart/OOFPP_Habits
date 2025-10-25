@@ -4,7 +4,7 @@ Pytest configuration & shared fixtures for the Habit Tracker project.
 This file provides:
 - Reliable imports from the project (adds repository root to sys.path).
 - An in-memory SQLite database that mirrors your production schema.
-- Optional sample data you can re-use across tests.
+- Optional sample data to re-use across tests.
 """
 from __future__ import annotations
 

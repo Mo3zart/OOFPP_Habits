@@ -1,7 +1,7 @@
 """
-Unit tests for HabitManager, aligned with your actual implementation.
+Unit tests for HabitManager.
 
-We mock the StorageHandler to verify correct delegation and logic flow.
+Mock the StorageHandler to verify correct delegation and logic flow.
 """
 from datetime import datetime, timedelta
 import pytest
@@ -72,7 +72,6 @@ def test_create_and_get_habit(manager):
     h = manager.create_habit("Drink Water", "daily")
     assert isinstance(h, Habit)
     assert h.name == "Drink Water"
-    # it should now exist in storage
     fetched = manager.get_habit(h.id)
     assert fetched is not None
     assert fetched.name == "Drink Water"
