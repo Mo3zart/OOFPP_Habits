@@ -1,5 +1,5 @@
 """
-Unit tests for the Habit dataclass (aligned with your implementation).
+Unit tests for the Habit dataclass.
 
 This verifies:
 - correct initialization of dataclass fields
@@ -7,8 +7,7 @@ This verifies:
 - conversion to/from database rows (to_db_row / from_db_row)
 - equality and representation consistency
 """
-from datetime import datetime, timedelta
-import pytest
+from datetime import datetime
 
 from src.modules.habit import Habit
 
@@ -39,7 +38,6 @@ def test_to_db_row_and_from_db_row_roundtrip():
     h = Habit(id=10, name="Read", periodicity="daily", created_at=datetime(2025, 10, 20))
     db_row = h.to_db_row()
     assert isinstance(db_row, tuple)
-    # Adapt if id is not part of row
     if len(db_row) == 3:
         name, periodicity, created_at = db_row
         db_row = (10, name, periodicity, created_at)

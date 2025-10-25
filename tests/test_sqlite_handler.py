@@ -1,5 +1,5 @@
 """
-Unit tests for SQLiteHandler, aligned with your actual implementation.
+Unit tests for SQLiteHandler.
 
 This verifies:
 - habit insertion/update/delete using SQL and class methods
@@ -18,7 +18,6 @@ def db_handler(tmp_path):
     """Provide a SQLiteHandler with an isolated temporary DB file."""
     db_file = tmp_path / "test_habits.db"
     conn = sqlite3.connect(db_file)
-    # Initialize schema manually to match your project
     conn.executescript("""
     CREATE TABLE IF NOT EXISTS habits(
         id INTEGER PRIMARY KEY,
@@ -98,6 +97,5 @@ def test_context_manager_support(tmp_path):
     with handler as h:
         assert isinstance(h, SQLiteHandler)
         assert hasattr(h, "conn")
-    # after exit, conn should be closed
     with pytest.raises(sqlite3.ProgrammingError):
         h.conn.execute("SELECT 1;")
