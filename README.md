@@ -23,7 +23,8 @@ This project demonstrates the design and implementation of a **habit tracking sy
 
 ### **1. Run with Docker**
 
->! Docker needs to be installed on your system.
+> [!IMPORTANT]
+> Docker needs to be installed on your system.
 
 To build and run the application inside Docker:
 ```bash
