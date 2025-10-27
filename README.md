@@ -44,7 +44,7 @@ After running, the CLI automatically starts:
 ----------------------------------------------------------
 ```
 
-`---OR---`
+*`---OR---`*
 
 ### **1. Clone the repository**
 ```bash
