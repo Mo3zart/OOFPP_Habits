@@ -1,3 +1,9 @@
+""" habit_manager module for the Habit Tracker application.
+
+Moritz Zewinger - OOFPP – DLBDSOOFPP01
+
+This module is part of the student portfolio submission."""
+
 from __future__ import annotations
 from datetime import datetime
 from typing import List, Optional
@@ -14,6 +20,17 @@ class HabitManager:
     """
 
     def __init__(self, storage: StorageHandler):
+        """  init  .
+
+        Moritz Zewinger - OOFPP – DLBDSOOFPP01
+
+        Args:
+            storage: Description.
+
+        Returns:
+            None
+        """
+
         self.storage = storage
         # ensure DB schema exists
         self.storage.ensure_tables()
@@ -64,8 +81,18 @@ class HabitManager:
     # Convenience helpers
     # -------------------------
     def latest_completion(self, habit_id: int) -> Optional[datetime]:
+        """Latest completion.
+
+        Moritz Zewinger - OOFPP – DLBDSOOFPP01
+
+        Args:
+            habit_id: Description.
+
+        Returns:
+            None
+        """
+
         habit = self.get_habit(habit_id)
         if habit and habit.completions:
             return max(habit.completions)
         return None
-

@@ -1,3 +1,9 @@
+""" admin_tools module for the Habit Tracker application.
+
+Moritz Zewinger - OOFPP – DLBDSOOFPP01
+
+This module is part of the student portfolio submission."""
+
 # src/modules/admin_tools.py
 from __future__ import annotations
 from datetime import datetime 
@@ -78,4 +84,3 @@ def show_all_completions(manager: HabitManager) -> None:
         print(f"{habit_id:<10} {habit_name:<20} {ts_fmt}")
 
     print()
-

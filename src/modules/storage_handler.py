@@ -1,3 +1,9 @@
+""" storage_handler module for the Habit Tracker application.
+
+Moritz Zewinger - OOFPP – DLBDSOOFPP01
+
+This module is part of the student portfolio submission."""
+
 from __future__ import annotations
 from abc import ABC, abstractmethod
 from datetime import datetime
@@ -49,4 +55,3 @@ class StorageHandler(ABC):
     def get_completions(self, habit_id: int) -> List[datetime]:
         """Return completion datetimes for a habit (UTC)."""
         raise NotImplementedError
-
