@@ -1,3 +1,9 @@
+""" habit module for the Habit Tracker application.
+
+Moritz Zewinger - OOFPP – DLBDSOOFPP01
+
+This module is part of the student portfolio submission."""
+
 from __future__ import annotations
 from dataclasses import dataclass, field
 from datetime import datetime
@@ -25,6 +31,17 @@ class Habit:
     completions: List[datetime] = field(default_factory=list)
 
     def __post_init__(self) -> None:
+        """  post init  .
+
+        Moritz Zewinger - OOFPP – DLBDSOOFPP01
+
+        Args:
+            None
+
+        Returns:
+            None
+        """
+
         if self.periodicity not in VALID_PERIODICITIES:
             raise ValueError(f"Invalid periodicity '{self.periodicity}'. Valid: {sorted(VALID_PERIODICITIES)}")
 
@@ -49,4 +66,3 @@ class Habit:
     def add_completion(self, when: Optional[datetime] = None) -> None:
         """Append a completion timestamp (in-memory). Persistence happens via StorageHandler."""
         self.completions.append(when or datetime.utcnow())
-
