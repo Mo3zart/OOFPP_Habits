@@ -21,6 +21,30 @@ This project demonstrates the design and implementation of a **habit tracking sy
 
 ## ⚙️ Installation Instructions
 
+### **1. Run with Docker**
+
+>! Docker needs to be installed on your system.
+
+To build and run the application inside Docker:
+```bash
+docker build --no-cache -t habit-tracker .
+docker run -it habit-tracker
+```
+
+After running, the CLI automatically starts:
+```
+----------------------------------------------------------
+ _   _       _     _ _ _____              _
+| | | |     | |   (_) |_   _|            | |
+| |_| | __ _| |__  _| |_| |_ __ __ _  ___| | _____ _ __
+|  _  |/ _` | '_ \| | __| | '__/ _` |/ __| |/ / _ \ '__|
+| | | | (_| | |_) | | |_| | | | (_| | (__|   <  __/ |
+\_| |_/\__,_|_.__/|_|\__\_/_|  \__,_|\___|_|\_\___|_|
+----------------------------------------------------------
+```
+
+`---OR---`
+
 ### **1. Clone the repository**
 ```bash
 git clone https://github.com/Mo3zart/OOFPP_Habits.git
@@ -46,28 +70,6 @@ python src/main.py
 
 You’ll see the interactive CLI start with the HabitTracker banner.
 
-### **5. Run with Docker**
-
->! Docker needs to be installed on your system.
-
-To build and run the application inside Docker:
-```bash
-docker build --no-cache -t habit-tracker .
-docker run -it habit-tracker
-```
-
-After running, the CLI automatically starts:
-```
-----------------------------------------------------------
- _   _       _     _ _ _____              _
-| | | |     | |   (_) |_   _|            | |
-| |_| | __ _| |__  _| |_| |_ __ __ _  ___| | _____ _ __
-|  _  |/ _` | '_ \| | __| | '__/ _` |/ __| |/ / _ \ '__|
-| | | | (_| | |_) | | |_| | | | (_| | (__|   <  __/ |
-\_| |_/\__,_|_.__/|_|\__\_/_|  \__,_|\___|_|\_\___|_|
-----------------------------------------------------------
-```
-
 ---
 
 ## 💻 Usage
@@ -88,6 +90,8 @@ Enter periodicity (daily/weekly/monthly): daily
 
 ✅ Habit '<habit_name>' (<periodicity>) saved successfully!
 ```
+
+> The `help` command always shows which commands you can run!
 
 ---
 
