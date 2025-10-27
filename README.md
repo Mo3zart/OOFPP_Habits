@@ -1,6 +1,6 @@
 # Habit Tracker App
 
-A command-line Python application to **create, track, and analyze habits** — developed for the IU course *Object Oriented and Functional Programming with Python (DLBDSOOFPP01)*.
+A command-line Python3 application to **create, track, and analyze habits** — developed for the IU course *Object Oriented and Functional Programming with Python (DLBDSOOFPP01)*.
 
 **Developed by Moritz Zewinger – OOFPP – DLBDSOOFPP01**
 
@@ -54,19 +54,19 @@ cd OOFPP_Habits
 
 ### **2. (Optional) Create a virtual environment**
 ```bash
-python -m venv .habit-tracker
+python3 -m venv .habit-tracker
 source .habit-tracker/bin/activate  # macOS/Linux
 .habit-tracker\Scripts\activate    # Windows
 ```
 
 ### **3. Install dependencies**
 ```bash
-pip install -r requirements.txt
+pip3 install -r requirements.txt
 ```
 
 ### **4. Run locally**
 ```bash
-python src/main.py
+python3 src/main.py
 ```
 
 You’ll see the interactive CLI start with the HabitTracker banner.
