@@ -1,3 +1,9 @@
+""" main module for the Habit Tracker application.
+
+Moritz Zewinger - OOFPP – DLBDSOOFPP01
+
+This module is part of the student portfolio submission."""
+
 # src/main.py
 from __future__ import annotations
 import sys
@@ -70,14 +76,47 @@ def fmt_dt_for_list(dt: Optional[datetime]) -> str:
 
 
 def print_banner_and_welcome() -> None:
+    """Print banner and welcome.
+
+    Moritz Zewinger - OOFPP – DLBDSOOFPP01
+
+    Args:
+        None
+
+    Returns:
+        None
+    """
+
     print(Fore.CYAN + ASCII_BANNER + Style.RESET_ALL)
 
 
 def print_help() -> None:
+    """Print help.
+
+    Moritz Zewinger - OOFPP – DLBDSOOFPP01
+
+    Args:
+        None
+
+    Returns:
+        None
+    """
+
     print(Fore.CYAN + USAGE_HELP + Style.RESET_ALL)
 
 
 def print_habits_table(manager: HabitManager) -> None:
+    """Print habits table.
+
+    Moritz Zewinger - OOFPP – DLBDSOOFPP01
+
+    Args:
+        manager: Description.
+
+    Returns:
+        None
+    """
+
     habits = manager.list_habits()
     if not habits:
         print(Fore.RED + "\nNo habits found.\n" + Style.RESET_ALL)
@@ -95,6 +134,17 @@ def print_habits_table(manager: HabitManager) -> None:
 
 
 def cmd_create(manager: HabitManager) -> None:
+    """Cmd create.
+
+    Moritz Zewinger - OOFPP – DLBDSOOFPP01
+
+    Args:
+        manager: Description.
+
+    Returns:
+        None
+    """
+
     name = input(Fore.YELLOW + "Enter habit name: " + Style.RESET_ALL).strip()
     if not name:
         print(Fore.RED + "Aborted: name cannot be empty." + Style.RESET_ALL)
@@ -112,10 +162,32 @@ def cmd_create(manager: HabitManager) -> None:
 
 
 def cmd_list(manager: HabitManager) -> None:
+    """Cmd list.
+
+    Moritz Zewinger - OOFPP – DLBDSOOFPP01
+
+    Args:
+        manager: Description.
+
+    Returns:
+        None
+    """
+
     print_habits_table(manager)
 
 
 def cmd_edit(manager: HabitManager) -> None:
+    """Cmd edit.
+
+    Moritz Zewinger - OOFPP – DLBDSOOFPP01
+
+    Args:
+        manager: Description.
+
+    Returns:
+        None
+    """
+
     print_habits_table(manager)
     try:
         raw = input(Fore.YELLOW + "Enter the ID of the habit you want to edit: " + Style.RESET_ALL).strip()
@@ -151,6 +223,17 @@ def cmd_edit(manager: HabitManager) -> None:
 
 
 def cmd_delete(manager: HabitManager) -> None:
+    """Cmd delete.
+
+    Moritz Zewinger - OOFPP – DLBDSOOFPP01
+
+    Args:
+        manager: Description.
+
+    Returns:
+        None
+    """
+
     print_habits_table(manager)
     try:
         raw = input(Fore.YELLOW + "Enter the ID of the habit you want to delete: " + Style.RESET_ALL).strip()
@@ -175,6 +258,17 @@ def cmd_delete(manager: HabitManager) -> None:
 
 
 def cmd_complete(manager: HabitManager) -> None:
+    """Cmd complete.
+
+    Moritz Zewinger - OOFPP – DLBDSOOFPP01
+
+    Args:
+        manager: Description.
+
+    Returns:
+        None
+    """
+
     print_habits_table(manager)
     try:
         raw = input(Fore.YELLOW + "Enter the ID of the habit you want to mark completed: " + Style.RESET_ALL).strip()
@@ -194,6 +288,17 @@ def cmd_complete(manager: HabitManager) -> None:
 
 
 def main_loop(db_path: str = "src/data/sample_habits.db") -> None:
+    """Main loop.
+
+    Moritz Zewinger - OOFPP – DLBDSOOFPP01
+
+    Args:
+        db_path: Description.
+
+    Returns:
+        None
+    """
+
     storage = SQLiteHandler(db_path)
     manager = HabitManager(storage)
     print_banner_and_welcome()
@@ -267,6 +372,17 @@ def main_loop(db_path: str = "src/data/sample_habits.db") -> None:
             print("Type 'help' to see available options, or 'back' to return to main menu.\n")
 
             def show_admin_help():
+                """Show admin help.
+
+                Moritz Zewinger - OOFPP – DLBDSOOFPP01
+
+                Args:
+                    None
+
+                Returns:
+                    None
+                """
+
                 print(Fore.CYAN + "\nAdmin Commands:\n" + Style.RESET_ALL)
                 print("  show <habit_id>     - show detailed info for a specific habit")
                 print("  completions         - list all recorded completions")
@@ -319,4 +435,3 @@ if __name__ == "__main__":
         main_loop(sys.argv[1])
     else:
         main_loop()
-

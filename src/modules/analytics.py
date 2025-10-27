@@ -1,3 +1,9 @@
+""" analytics module for the Habit Tracker application.
+
+Moritz Zewinger - OOFPP – DLBDSOOFPP01
+
+This module is part of the student portfolio submission."""
+
 # src/modules/analytics.py
 from __future__ import annotations
 from datetime import datetime, timedelta
